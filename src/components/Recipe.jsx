@@ -1,10 +1,11 @@
 import PropTypes from 'prop-types'
 import { User } from './User.jsx'
-export function Post({ title, contents, author }) {
+export function Recipe({ title, ingredients, imageUrl, author }) {
   return (
     <article>
       <h3>{title}</h3>
-      <div>{contents}</div>
+      <div>{ingredients}</div>
+      <div>{imageUrl}</div>
       {author && (
         <em>
           <br />
@@ -14,8 +15,9 @@ export function Post({ title, contents, author }) {
     </article>
   )
 }
-Post.propTypes = {
+Recipe.propTypes = {
   title: PropTypes.string.isRequired,
-  contents: PropTypes.string,
+  ingredients: PropTypes.string,
+  imageUrl: PropTypes.string,
   author: PropTypes.string,
 }

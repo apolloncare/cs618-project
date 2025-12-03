@@ -1,22 +1,23 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { createPost } from '../api/posts.js'
+import { createRecipe } from '../api/recipes.js'
 
-export function CreatePost() {
+export function CreateRecipe() {
   const [title, setTitle] = useState('')
-  const [contents, setContents] = useState('')
+  const [ingredients, setIngredients] = useState('')
+  const [imageUrl, setImage] = useState('')
 
   const [token] = useAuth()
 
   const queryClient = useQueryClient()
-  const createPostMutation = useMutation({
-    mutationFn: () => createPost(token, { title, contents }),
+  const createRecipeMutation = useMutation({
+    mutationFn: () => createRecipe(token, { title, ingredients }),
     onSuccess: () => queryClient.invalidateQueries(['posts']),
   })
   const handleSubmit = (e) => {
     e.preventDefault()
-    createPostMutation.mutate()
+    createRecipeMutation.mutate()
   }
 
   if (!token) return <div>Please log in to create new posts.</div>
@@ -35,20 +36,23 @@ export function CreatePost() {
       </div>
       <br />
       <textarea
-        value={contents}
-        onChange={(e) => setContents(e.target.value)}
+        value={ingredients}
+        onChange={(e) => setIngredients(e.target.value)}
       />
+      <br />
+      <br />
+      <textarea value={imageUrl} onChange={(e) => setImage(e.target.value)} />
       <br />
       <br />
       <input
         type='submit'
-        value={createPostMutation.isPending ? 'Creating...' : 'Create'}
-        disabled={!title || createPostMutation.isPending}
+        value={createRecipeMutation.isPending ? 'Creating...' : 'Create'}
+        disabled={!title || createRecipeMutation.isPending}
       />
-      {createPostMutation.isSuccess ? (
+      {createRecipeMutation.isSuccess ? (
         <>
           <br />
-          Post created successfully!
+          Recipe created successfully!
         </>
       ) : null}
     </form>
