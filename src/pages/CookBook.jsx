@@ -21,7 +21,7 @@ export function CookBook() {
       <br />
       <hr />
       <br />
-      <h1>Welcome to My Blog!</h1>
+      <h2>Find and Create the Best Recipes!</h2>
       <CreateRecipe />
       <hr />
       Filter by:

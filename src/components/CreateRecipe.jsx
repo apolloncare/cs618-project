@@ -13,14 +13,14 @@ export function CreateRecipe() {
   const queryClient = useQueryClient()
   const createRecipeMutation = useMutation({
     mutationFn: () => createRecipe(token, { title, ingredients }),
-    onSuccess: () => queryClient.invalidateQueries(['posts']),
+    onSuccess: () => queryClient.invalidateQueries(['recipes']),
   })
   const handleSubmit = (e) => {
     e.preventDefault()
     createRecipeMutation.mutate()
   }
 
-  if (!token) return <div>Please log in to create new posts.</div>
+  if (!token) return <div>Please log in to create new recipes.</div>
 
   return (
     <form onSubmit={handleSubmit}>
