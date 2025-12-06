@@ -27,7 +27,7 @@ export function postsRoutes(app) {
         return res.json(await listAllRecipes(options))
       }
     } catch (err) {
-      console.error('error listing posts', err)
+      console.error('error listing recipes', err)
       return res.status(500).end()
     }
   })
@@ -38,7 +38,7 @@ export function postsRoutes(app) {
       if (recipe === null) return res.status(404).end()
       return res.json(recipe)
     } catch (err) {
-      console.error('error getting post', err)
+      console.error('error getting recipe', err)
       return res.status(500).end()
     }
   })
