@@ -16,3 +16,18 @@ export const createRecipe = async (token, recipe) => {
   })
   return await res.json()
 }
+export const rateRecipe = async (token, recipeId, value) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/recipes/${recipeId}/rating`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ value }),
+    },
+  )
+
+  return await res.json()
+}

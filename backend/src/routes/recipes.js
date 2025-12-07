@@ -2,27 +2,32 @@ import {
   listAllRecipes,
   listRecipesByAuthor,
   listRecipesByIngredient,
+  listRecipesByTag,
   getRecipeById,
   deleteRecipe,
   updateRecipe,
   createRecipe,
+  rateRecipe,
 } from '../services/recipes.js'
-
 import { requireAuth } from '../middleware/jwt.js'
 
 export function postsRoutes(app) {
   app.get('/api/v1/recipes', async (req, res) => {
-    const { sortBy, sortOrder, author, ingredient } = req.query
+    const { sortBy, sortOrder, author, ingredient, tag } = req.query
     const options = { sortBy, sortOrder }
+
     try {
-      if (author && ingredient) {
-        return res
-          .status(400)
-          .json({ error: 'query by either author or ingredient, not both' })
+      const filters = [author, ingredient, tag].filter(Boolean).length
+      if (filters > 1) {
+        return res.status(400).json({
+          error: 'query by only one of author, ingredient or tag',
+        })
       } else if (author) {
         return res.json(await listRecipesByAuthor(author, options))
       } else if (ingredient) {
         return res.json(await listRecipesByIngredient(ingredient, options))
+      } else if (tag) {
+        return res.json(await listRecipesByTag(tag, options))
       } else {
         return res.json(await listAllRecipes(options))
       }
@@ -31,6 +36,7 @@ export function postsRoutes(app) {
       return res.status(500).end()
     }
   })
+
   app.get('/api/v1/recipes/:id', async (req, res) => {
     const { id } = req.params
     try {
@@ -42,6 +48,7 @@ export function postsRoutes(app) {
       return res.status(500).end()
     }
   })
+
   app.post('/api/v1/recipes', requireAuth, async (req, res) => {
     try {
       const recipe = await createRecipe(req.auth.sub, req.body)
@@ -51,6 +58,7 @@ export function postsRoutes(app) {
       return res.status(500).end()
     }
   })
+
   app.patch('/api/v1/recipes/:id', requireAuth, async (req, res) => {
     try {
       const recipe = await updateRecipe(req.auth.sub, req.params.id, req.body)
@@ -60,6 +68,7 @@ export function postsRoutes(app) {
       return res.status(500).end()
     }
   })
+
   app.delete('/api/v1/recipes/:id', requireAuth, async (req, res) => {
     try {
       const { deletedCount } = await deleteRecipe(req.auth.sub, req.params.id)
@@ -68,6 +77,18 @@ export function postsRoutes(app) {
     } catch (err) {
       console.error('error deleting recipe', err)
       return res.status(500).end()
+    }
+  })
+
+  // NEW: rate a recipe
+  app.post('/api/v1/recipes/:id/rating', requireAuth, async (req, res) => {
+    try {
+      const { value } = req.body
+      const recipe = await rateRecipe(req.auth.sub, req.params.id, value)
+      return res.json(recipe)
+    } catch (err) {
+      console.error('error rating recipe', err)
+      return res.status(400).json({ error: err.message })
     }
   })
 }

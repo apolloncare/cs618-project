@@ -1,8 +1,17 @@
 import { Recipe } from '../db/models/recipe.js'
 import { User } from '../db/models/user.js'
 
-export async function createRecipe(userId, { title, ingredients, imageUrl }) {
-  const recipe = new Recipe({ title, author: userId, ingredients, imageUrl })
+export async function createRecipe(
+  userId,
+  { title, ingredients, imageUrl, tags },
+) {
+  const recipe = new Recipe({
+    title,
+    author: userId,
+    ingredients,
+    imageUrl,
+    tags,
+  })
   return await recipe.save()
 }
 async function listRecipes(
@@ -25,17 +34,52 @@ export async function listRecipesByIngredient(ingredients, options) {
 export async function getRecipeById(recipeId) {
   return await Recipe.findById(recipeId)
 }
+export async function listRecipesByTag(tag, options) {
+  return await listRecipes({ tags: tag }, options)
+}
 export async function updateRecipe(
   userId,
   recipeId,
-  { title, ingredients, imageUrl },
+  { title, ingredients, imageUrl, tags },
 ) {
   return await Recipe.findOneAndUpdate(
     { _id: recipeId, author: userId },
-    { $set: { title, ingredients, imageUrl } },
+    { $set: { title, ingredients, imageUrl, tags } },
     { new: true },
   )
 }
 export async function deleteRecipe(userId, recipeId) {
   return await Recipe.deleteOne({ _id: recipeId, author: userId })
+}
+export async function rateRecipe(userId, recipeId, value) {
+  if (value < 1 || value > 5) {
+    throw new Error('Rating must be between 1 and 5')
+  }
+
+  const recipe = await Recipe.findById(recipeId)
+  if (!recipe) {
+    throw new Error('Recipe not found')
+  }
+
+  const existingIndex = recipe.ratings.findIndex((r) => r.user.equals(userId))
+
+  if (existingIndex >= 0) {
+    // update existing rating
+    recipe.ratings[existingIndex].value = value
+  } else {
+    // add new rating
+    recipe.ratings.push({ user: userId, value })
+  }
+
+  // recompute aggregates
+  recipe.ratingCount = recipe.ratings.length
+  if (recipe.ratingCount === 0) {
+    recipe.avgRating = 0
+  } else {
+    const total = recipe.ratings.reduce((sum, r) => sum + r.value, 0)
+    recipe.avgRating = total / recipe.ratingCount
+  }
+
+  await recipe.save()
+  return recipe
 }

@@ -64,13 +64,11 @@ async function createDevServer() {
   })
   return app
 }
-
 if (process.env.NODE_ENV === 'production') {
   const app = await createProdServer()
   app.listen(process.env.PORT, () =>
     console.log(
-      `ssr production server running on http://
-localhost:${process.env.PORT}`,
+      `ssr production server running on http://localhost:${process.env.PORT}`,
     ),
   )
 } else {

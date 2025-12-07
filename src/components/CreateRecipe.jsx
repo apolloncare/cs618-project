@@ -8,6 +8,7 @@ export function CreateRecipe() {
   const [title, setTitle] = useState('')
   const [ingredientsText, setIngredientsText] = useState('') // string in textarea
   const [imageUrl, setImageUrl] = useState('')
+  const [tagsText, setTagsText] = useState('')
 
   const [token] = useAuth()
   const queryClient = useQueryClient()
@@ -18,12 +19,18 @@ export function CreateRecipe() {
       const ingredientsArray = ingredientsText
         .split('\n') // split by line
         .map((s) => s.trim()) // trim whitespace
-        .filter(Boolean) // remove empty lines
+        .filter(Boolean)
+
+      const tags = tagsText
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
 
       return createRecipeApi(token, {
         title,
         ingredients: ingredientsArray,
         imageUrl,
+        tags,
       })
     },
     onSuccess: () => {
@@ -32,6 +39,7 @@ export function CreateRecipe() {
       setTitle('')
       setIngredientsText('')
       setImageUrl('')
+      setTagsText('')
     },
   })
 
@@ -85,6 +93,20 @@ export function CreateRecipe() {
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           placeholder='https://example.com/my-delicious-cake.jpg'
+        />
+      </div>
+
+      <br />
+
+      {/* Tags */}
+      <div>
+        <label htmlFor='create-tags'>Tags (comma-separated)</label>
+        <br />
+        <input
+          id='create-tags'
+          value={tagsText}
+          onChange={(e) => setTagsText(e.target.value)}
+          placeholder='vegan, dessert, quick, easy'
         />
       </div>
 
