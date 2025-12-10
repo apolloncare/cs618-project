@@ -3,11 +3,15 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import express from 'express'
 import dotenv from 'dotenv'
+import { generateSitemap } from './generateSitemap.js'
+
 dotenv.config()
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 async function createProdServer() {
   const app = express()
+
   app.use((await import('compression')).default())
   app.use(
     (await import('serve-static')).default(
@@ -17,34 +21,61 @@ async function createProdServer() {
       },
     ),
   )
+
+  // 👇 Catch-all for prod, including sitemap.xml
   app.use('*', async (req, res, next) => {
     try {
-      let template = fs.readFileSync(
+      // 1. Handle sitemap.xml explicitly
+      if (req.originalUrl === '/sitemap.xml') {
+        const sitemap = await generateSitemap()
+        return res
+          .status(200)
+          .set({ 'Content-Type': 'application/xml' })
+          .end(sitemap)
+      }
+
+      // 2. Fall through to normal SSR for everything else
+      const template = fs.readFileSync(
         path.resolve(__dirname, 'dist/client/index.html'),
         'utf-8',
       )
-      const render = (await import('./dist/server/entry-server.js')).render
+      const { render } = await import('./dist/server/entry-server.js')
       const appHtml = await render(req)
-      const html = template.replace(`<!--ssr-outlet-->`, appHtml)
+      const html = template.replace('<!--ssr-outlet-->', appHtml)
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
     } catch (e) {
       next(e)
     }
   })
+
   return app
 }
 
 async function createDevServer() {
   const app = express()
+
   const vite = await (
     await import('vite')
   ).createServer({
     server: { middlewareMode: true },
     appType: 'custom',
   })
+
   app.use(vite.middlewares)
+
+  // 👇 Catch-all for dev, including sitemap.xml (your old working pattern)
   app.use('*', async (req, res, next) => {
     try {
+      // 1. Special-case sitemap.xml
+      if (req.originalUrl === '/sitemap.xml') {
+        const sitemap = await generateSitemap()
+        return res
+          .status(200)
+          .set({ 'Content-Type': 'application/xml' })
+          .end(sitemap)
+      }
+
+      // 2. Normal SSR
       const templateHtml = fs.readFileSync(
         path.resolve(__dirname, 'index.html'),
         'utf-8',
@@ -55,27 +86,29 @@ async function createDevServer() {
       )
       const { render } = await vite.ssrLoadModule('/src/entry-server.jsx')
       const appHtml = await render(req)
-      const html = template.replace(`<!--ssr-outlet-->`, appHtml)
+      const html = template.replace('<!--ssr-outlet-->', appHtml)
       res.status(200).set({ 'Content-Type': 'text/html' }).end(html)
     } catch (e) {
       vite.ssrFixStacktrace(e)
       next(e)
     }
   })
+
   return app
 }
+
 if (process.env.NODE_ENV === 'production') {
   const app = await createProdServer()
-  app.listen(process.env.PORT, () =>
+  app.listen(process.env.PORT, () => {
     console.log(
       `ssr production server running on http://localhost:${process.env.PORT}`,
-    ),
-  )
+    )
+  })
 } else {
   const app = await createDevServer()
-  app.listen(process.env.PORT, () =>
+  app.listen(process.env.PORT, () => {
     console.log(
       `ssr dev server running on http://localhost:${process.env.PORT}`,
-    ),
-  )
+    )
+  })
 }

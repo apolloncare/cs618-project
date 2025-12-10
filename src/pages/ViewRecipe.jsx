@@ -9,6 +9,8 @@ import { Recipe } from '../components/Recipe.jsx'
 import { getRecipeById, rateRecipe } from '../api/recipes.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import { useMemo } from 'react'
+import { Helmet } from 'react-helmet-async'
+import { getUserInfo } from '../api/users.js'
 
 export function ViewRecipe({ recipeId }) {
   const [token] = useAuth()
@@ -31,6 +33,12 @@ export function ViewRecipe({ recipeId }) {
     queryFn: () => getRecipeById(recipeId),
   })
   const recipe = recipeQuery.data
+  const userInfoQuery = useQuery({
+    queryKey: ['users', recipe?.author],
+    queryFn: () => getUserInfo(recipe?.author),
+    enabled: Boolean(recipe?.author),
+  })
+  const userInfo = userInfoQuery.data ?? {}
 
   const rateRecipeMutation = useMutation({
     mutationFn: ({ recipeId, value }) => rateRecipe(token, recipeId, value),
@@ -57,9 +65,37 @@ export function ViewRecipe({ recipeId }) {
     })
     myRating = mine ? mine.value : null
   }
+  function truncate(str, max = 160) {
+    if (!str) return str
+    if (str.length > max) {
+      return str.slice(0, max - 3) + '...'
+    } else {
+      return str
+    }
+  }
 
   return (
     <div style={{ padding: 8 }}>
+      {recipe && (
+        <Helmet>
+          <title>{recipe.title} | My Little CookBook</title>
+          <meta name='description' content={truncate(recipe.contents)} />
+          <meta property='og:type' content='article' />
+          <meta property='og:title' content={recipe.title} />
+          <meta
+            property='og:article:published_time'
+            content={recipe.createdAt}
+          />
+          <meta
+            property='og:article:modified_time'
+            content={recipe.updatedAt}
+          />
+          <meta property='og:article:author' content={userInfo.username} />
+          {(recipe.tags ?? []).map((tag) => (
+            <meta key={tag} property='og:article:tag' content={tag} />
+          ))}
+        </Helmet>
+      )}
       <Header />
       <br />
       <hr />

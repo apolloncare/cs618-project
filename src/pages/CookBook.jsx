@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Helmet } from 'react-helmet-async'
 
 import { RecipeList } from '../components/RecipeList.jsx'
 import { CreateRecipe } from '../components/CreateRecipe.jsx'
@@ -59,6 +60,13 @@ export function CookBook() {
 
   return (
     <div style={{ padding: 8 }}>
+      <Helmet>
+        <title>y Little CookBook</title>
+        <meta
+          name='description'
+          content='A cookbook full of recipes about delicious meals.'
+        />
+      </Helmet>
       <Header />
       <br />
       <hr />
