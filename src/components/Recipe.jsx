@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { User } from './User.jsx'
+import slug from 'slug'
 
 function RatingStars({ avgRating, ratingCount, myRating, canRate, onRate }) {
   // When logged in, display *only* the user's rating in the stars.
@@ -90,7 +91,7 @@ export function Recipe({
       {fullRecipe ? (
         <h3>{title}</h3>
       ) : (
-        <Link to={`/recipes/${_id}`}>
+        <Link to={`/recipes/${_id}/${slug(title)}`}>
           <h3>{title}</h3>
         </Link>
       )}

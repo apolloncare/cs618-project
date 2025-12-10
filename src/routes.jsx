@@ -52,7 +52,7 @@ export const routes = [
     element: <Login />,
   },
   {
-    path: '/recipes/:recipeId',
+    path: '/recipes/:recipeId/:slug?',
     loader: async ({ params }) => {
       const recipeId = params.recipeId
       const queryClient = new QueryClient()
