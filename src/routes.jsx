@@ -2,7 +2,8 @@ import { CookBook } from './pages/CookBook.jsx'
 import { Signup } from './pages/Signup.jsx'
 import { Login } from './pages/Login.jsx'
 import { useLoaderData } from 'react-router-dom'
-import { getRecipes } from './api/recipes.js'
+import { getRecipes, getRecipeById } from './api/recipes.js'
+import { ViewRecipe } from './pages/ViewRecipe.jsx'
 import {
   QueryClient,
   dehydrate,
@@ -49,5 +50,33 @@ export const routes = [
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/recipes/:recipeId',
+    loader: async ({ params }) => {
+      const recipeId = params.recipeId
+      const queryClient = new QueryClient()
+      const recipe = await getRecipeById(recipeId)
+      await queryClient.prefetchQuery({
+        queryKey: ['recipe', recipeId],
+        queryFn: () => recipe,
+      })
+      if (recipe?.author) {
+        await queryClient.prefetchQuery({
+          queryKey: ['users', recipe.author],
+          queryFn: () => getUserInfo(recipe.author),
+        })
+      }
+      return { dehydratedState: dehydrate(queryClient), recipeId }
+    },
+
+    Component() {
+      const { dehydratedState, recipeId } = useLoaderData()
+      return (
+        <HydrationBoundary state={dehydratedState}>
+          <ViewRecipe recipeId={recipeId} />
+        </HydrationBoundary>
+      )
+    },
   },
 ]

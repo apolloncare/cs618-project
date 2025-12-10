@@ -1,4 +1,3 @@
-// src/components/RecipeList.jsx
 import { Fragment } from 'react'
 import PropTypes from 'prop-types'
 import { Recipe } from './Recipe.jsx'
@@ -16,11 +15,9 @@ export function RecipeList({
   return (
     <div>
       {recipes.map((recipe) => {
-        // find this user's rating if logged in
         let myRating = null
         if (currentUserId && Array.isArray(recipe.ratings)) {
           const mine = recipe.ratings.find((r) => {
-            // r.user may be a string or a populated object
             if (typeof r.user === 'string') return r.user === currentUserId
             if (r.user && r.user._id) return r.user._id === currentUserId
             return false
@@ -31,6 +28,7 @@ export function RecipeList({
         return (
           <Fragment key={recipe._id}>
             <Recipe
+              _id={recipe._id}
               title={recipe.title}
               ingredients={recipe.ingredients}
               imageUrl={recipe.imageUrl}
@@ -41,6 +39,7 @@ export function RecipeList({
               myRating={myRating ?? undefined}
               canRate={canRate}
               onRate={(value) => onRate?.(recipe._id, value)}
+              fullRecipe={false}
             />
             <hr />
           </Fragment>

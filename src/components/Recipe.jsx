@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { Link } from 'react-router-dom'
 import { User } from './User.jsx'
 
 function RatingStars({ avgRating, ratingCount, myRating, canRate, onRate }) {
@@ -70,6 +71,7 @@ RatingStars.propTypes = {
 }
 
 export function Recipe({
+  _id,
   title,
   ingredients,
   imageUrl,
@@ -80,18 +82,29 @@ export function Recipe({
   myRating,
   canRate,
   onRate,
+  fullRecipe = false,
 }) {
   return (
     <article>
-      <h3>{title}</h3>
+      {/* Title: plain in full view, clickable link in list view */}
+      {fullRecipe ? (
+        <h3>{title}</h3>
+      ) : (
+        <Link to={`/recipes/${_id}`}>
+          <h3>{title}</h3>
+        </Link>
+      )}
 
-      <RatingStars
-        avgRating={avgRating || 0}
-        ratingCount={ratingCount || 0}
-        myRating={canRate ? myRating : null}
-        canRate={canRate}
-        onRate={(value) => onRate?.(value)}
-      />
+      {/* Rating: only show in fullRecipe view (as you coded) */}
+      {fullRecipe && (
+        <RatingStars
+          avgRating={avgRating || 0}
+          ratingCount={ratingCount || 0}
+          myRating={canRate ? myRating : null}
+          canRate={canRate}
+          onRate={(value) => onRate?.(value)}
+        />
+      )}
 
       {/* Tags */}
       {tags?.length > 0 && (
@@ -100,14 +113,20 @@ export function Recipe({
         </p>
       )}
 
-      <h3>Ingredients</h3>
-      <ul>
-        {ingredients.map((ing, idx) => (
-          <li key={idx}>{ing}</li>
-        ))}
-      </ul>
+      {/* Ingredients (only in full view) */}
+      {fullRecipe && (
+        <>
+          <h3>Ingredients</h3>
+          <ul>
+            {ingredients.map((ing, idx) => (
+              <li key={idx}>{ing}</li>
+            ))}
+          </ul>
+        </>
+      )}
 
-      {imageUrl && (
+      {/* Image (only in full view) */}
+      {fullRecipe && imageUrl && (
         <>
           <h3>Image</h3>
           <a
@@ -139,7 +158,7 @@ export function Recipe({
 
       {author && (
         <em>
-          <br />
+          {fullRecipe && <br />}
           Written by <User id={author} />
         </em>
       )}
@@ -148,6 +167,7 @@ export function Recipe({
 }
 
 Recipe.propTypes = {
+  _id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   ingredients: PropTypes.arrayOf(PropTypes.string).isRequired,
   imageUrl: PropTypes.string,
@@ -158,4 +178,5 @@ Recipe.propTypes = {
   myRating: PropTypes.number,
   canRate: PropTypes.bool,
   onRate: PropTypes.func,
+  fullRecipe: PropTypes.bool,
 }
