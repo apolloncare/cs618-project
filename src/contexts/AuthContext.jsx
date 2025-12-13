@@ -13,9 +13,13 @@ export const AuthContextProvider = ({ children }) => {
   )
 }
 AuthContextProvider.propTypes = {
-  children: PropTypes.element.isRequired,
+  children: PropTypes.node.isRequired,
 }
 export function useAuth() {
-  const { token, setToken } = useContext(AuthContext)
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within AuthContextProvider')
+  }
+  const { token, setToken } = context
   return [token, setToken]
 }

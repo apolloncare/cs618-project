@@ -10,6 +10,7 @@ import {
   rateRecipe,
 } from '../services/recipes.js'
 import { requireAuth } from '../middleware/jwt.js'
+import { broadcastNewRecipe } from '../socket.js'
 
 export function postsRoutes(app) {
   app.get('/api/v1/recipes', async (req, res) => {
@@ -52,6 +53,7 @@ export function postsRoutes(app) {
   app.post('/api/v1/recipes', requireAuth, async (req, res) => {
     try {
       const recipe = await createRecipe(req.auth.sub, req.body)
+      broadcastNewRecipe(recipe)
       return res.json(recipe)
     } catch (err) {
       console.error('error creating recipe', err)
